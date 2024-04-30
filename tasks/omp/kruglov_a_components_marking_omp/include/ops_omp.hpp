@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "core/task/include/task.hpp"
+namespace KruglovOmpTask {
 
 class imgMarkingOmp : public ppc::core::Task {
  public:
@@ -23,3 +24,4 @@ class imgMarkingOmp : public ppc::core::Task {
   uint32_t h{}, w{};
   void imgMarking();
 };
+}  // namespace KruglovOmpTask

@@ -4,8 +4,9 @@
 
 #include <omp.h>
 
-using namespace std;
 using namespace std::chrono_literals;
+
+namespace KruglovOmpTask {
 
 bool imgMarkingOmp::pre_processing() {
   internal_order_test();
@@ -145,3 +146,4 @@ void imgMarkingOmp::imgMarking() {
         if (ptrMap[i][j] != nullptr) dst[i][j] = **(ptrMap[i][j]);
   }
 }
+}  // namespace KruglovOmpTask

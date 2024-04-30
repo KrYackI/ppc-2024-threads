@@ -7,6 +7,8 @@
 
 #include "omp/kruglov_a_components_marking_omp/include/ops_omp.hpp"
 
+using namespace KruglovOmpTask;
+
 TEST(kruglov_a_components_marking_omp_functional, test_functional) {
   // Create data
 

@@ -6,6 +6,8 @@
 #include "core/perf/include/perf.hpp"
 #include "omp/kruglov_a_components_marking_omp/include/ops_omp.hpp"
 
+using namespace KruglovOmpTask;
+
 TEST(kruglov_a_components_marking_omp_perf_test, test_pipeline_run) {
   // Create data
 
