@@ -12,10 +12,16 @@ TEST(kruglov_a_components_marking_omp_functional, test_functional) {
   uint32_t h = 10;
   uint32_t w = 10;
   std::vector<uint32_t> size = {h, w};
-  std::vector<uint8_t> in = {0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1,
-                             1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1,
-                             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
-                             1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1};
+  std::vector<uint8_t> in = { 0, 0, 1, 1, 0, 0, 0, 1, 1, 1 ,
+                                               0, 1, 1, 1, 1, 1, 0, 1, 1, 1 ,
+                                               0, 0, 1, 0, 0, 1, 0, 1, 0, 1 ,
+                                               1, 0, 1, 1, 0, 1, 0, 1, 0, 1 ,
+                                               1, 1, 1, 0, 0, 0, 0, 0, 0, 0 ,
+                                               1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,
+                                               1, 0, 1, 1, 0, 1, 1, 1, 1, 1 ,
+                                               1, 0, 0, 0, 0, 1, 1, 1, 0, 0 ,
+                                               1, 1, 1, 1, 0, 1, 1, 0, 1, 1 ,
+                                               1, 1, 1, 1, 1, 0, 0, 0, 1, 1 };
   std::vector<uint32_t> out(h * w, 0);
   std::vector<uint32_t> comp = {1, 1, 0, 0, 2, 2, 2, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 1, 1, 0, 0, 0,
                                 0, 0, 0, 0, 0, 0, 1, 0, 0, 3, 0, 3, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3, 0, 0, 0,
@@ -40,7 +46,9 @@ TEST(kruglov_a_components_marking_omp_functional, test_functional) {
 
       for (uint32_t i = 0; i < h; ++i) {
         for (uint32_t j = 0; j < w; ++j)
-            std::cout << (out[i * w + j]) << ", ";
+            if (out[i * w + j] != 0)
+                std::cout << (out[i * w + j]) << " ";
+            else std::cout << " " << " ";
         std::cout << '\n';
     }
 
@@ -106,8 +114,8 @@ TEST(kruglov_a_components_marking_omp_functional, test_all_ones) {
 
 TEST(kruglov_a_components_marking_omp_functional, test_all_zeros) {
   // Create data
-  uint32_t h = 10;
-  uint32_t w = 10;
+  uint32_t h = 2000;
+  uint32_t w = 2000;
   std::vector<uint32_t> size = {h, w};
   std::vector<uint8_t> in(h * w, 0);
   std::vector<uint32_t> out(h * w, 0);
@@ -129,11 +137,11 @@ TEST(kruglov_a_components_marking_omp_functional, test_all_zeros) {
   testTaskParallel.run();
   testTaskParallel.post_processing();
 
-      for (uint32_t i = 0; i < h; ++i) {
-        for (uint32_t j = 0; j < w; ++j)
-            std::cout << (out[i * w + j]) << ", ";
-        std::cout << '\n';
-    }
+    //   for (uint32_t i = 0; i < h; ++i) {
+    //     for (uint32_t j = 0; j < w; ++j)
+    //         std::cout << (out[i * w + j]) << ", ";
+    //     std::cout << '\n';
+    // }
 
   ASSERT_EQ(out, comp);
 }
