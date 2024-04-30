@@ -35,11 +35,6 @@ TEST(kruglov_a_components_marking_omp_functional, test_functional) {
   testTaskParallel.run();
   testTaskParallel.post_processing();
 
-  for (uint32_t i = 0; i < h; ++i) {
-    for (uint32_t j = 0; j < w; ++j) std::cout << (out[i * w + j]) << ", ";
-    std::cout << '\n';
-  }
-
   int32_t unique = 0;
   sort(out.begin(), out.end());
   for (uint32_t i = 0; i < h * w - 1; ++i) {
