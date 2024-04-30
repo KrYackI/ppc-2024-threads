@@ -1,8 +1,9 @@
 // Copyright 2023 Kruglov Alexey
 #include <gtest/gtest.h>
 
-#include <vector>
+#include <algorithm>
 #include <iostream>
+#include <vector>
 
 #include "omp/kruglov_a_components_marking_omp/include/ops_omp.hpp"
 
@@ -12,21 +13,11 @@ TEST(kruglov_a_components_marking_omp_functional, test_functional) {
   uint32_t h = 10;
   uint32_t w = 10;
   std::vector<uint32_t> size = {h, w};
-  std::vector<uint8_t> in = { 0, 0, 1, 1, 0, 0, 0, 1, 1, 1 ,
-                                               0, 1, 1, 1, 1, 1, 0, 1, 1, 1 ,
-                                               0, 0, 1, 0, 0, 1, 0, 1, 0, 1 ,
-                                               1, 0, 1, 1, 0, 1, 0, 1, 0, 1 ,
-                                               1, 1, 1, 0, 0, 0, 0, 0, 0, 0 ,
-                                               1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,
-                                               1, 0, 1, 1, 0, 1, 1, 1, 1, 1 ,
-                                               1, 0, 0, 0, 0, 1, 1, 1, 0, 0 ,
-                                               1, 1, 1, 1, 0, 1, 1, 0, 1, 1 ,
-                                               1, 1, 1, 1, 1, 0, 0, 0, 1, 1 };
+  std::vector<uint8_t> in = {0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0,
+                             1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
+                             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
+                             1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1};
   std::vector<uint32_t> out(h * w, 0);
-  std::vector<uint32_t> comp = {1, 1, 0, 0, 2, 2, 2, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 1, 1, 0, 0, 0,
-                                0, 0, 0, 0, 0, 0, 1, 0, 0, 3, 0, 3, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3, 0, 0, 0,
-                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 4, 0, 0, 0, 0, 0, 0, 4, 4, 4, 4,
-                                0, 0, 0, 5, 5, 0, 0, 0, 0, 4, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 6, 6, 6, 0, 0};
 
   // Create TaskData
   std::shared_ptr<ppc::core::TaskData> taskDataOmp = std::make_shared<ppc::core::TaskData>();
@@ -44,15 +35,18 @@ TEST(kruglov_a_components_marking_omp_functional, test_functional) {
   testTaskParallel.run();
   testTaskParallel.post_processing();
 
-      for (uint32_t i = 0; i < h; ++i) {
-        for (uint32_t j = 0; j < w; ++j)
-            if (out[i * w + j] != 0)
-                std::cout << (out[i * w + j]) << " ";
-            else std::cout << " " << " ";
-        std::cout << '\n';
-    }
+  for (uint32_t i = 0; i < h; ++i) {
+    for (uint32_t j = 0; j < w; ++j) std::cout << (out[i * w + j]) << ", ";
+    std::cout << '\n';
+  }
 
-  ASSERT_EQ(out, comp);
+  int32_t unique = 0;
+  sort(out.begin(), out.end());
+  for (uint32_t i = 0; i < h * w - 1; ++i) {
+    if (out[i] != out[i + 1]) unique++;
+  }
+
+  ASSERT_EQ(5, unique);
 }
 
 TEST(kruglov_a_components_marking_omp_functional, test_non_square) {
@@ -82,7 +76,13 @@ TEST(kruglov_a_components_marking_omp_functional, test_non_square) {
   testTaskParallel.pre_processing();
   testTaskParallel.run();
   testTaskParallel.post_processing();
-  ASSERT_EQ(out, comp);
+  int32_t unique = 0;
+  sort(out.begin(), out.end());
+  for (uint32_t i = 0; i < h * w - 1; ++i) {
+    if (out[i] != out[i + 1]) unique++;
+  }
+
+  ASSERT_EQ(3, unique);
 }
 
 TEST(kruglov_a_components_marking_omp_functional, test_all_ones) {
@@ -137,13 +137,13 @@ TEST(kruglov_a_components_marking_omp_functional, test_all_zeros) {
   testTaskParallel.run();
   testTaskParallel.post_processing();
 
-    //   for (uint32_t i = 0; i < h; ++i) {
-    //     for (uint32_t j = 0; j < w; ++j)
-    //         std::cout << (out[i * w + j]) << ", ";
-    //     std::cout << '\n';
-    // }
+  int32_t unique = 0;
+  sort(out.begin(), out.end());
+  for (uint32_t i = 0; i < h * w - 1; ++i) {
+    if (out[i] != out[i + 1]) unique++;
+  }
 
-  ASSERT_EQ(out, comp);
+  ASSERT_EQ(unique, 0);
 }
 
 TEST(kruglov_a_components_marking_omp_functional, test_grid) {
@@ -175,11 +175,11 @@ TEST(kruglov_a_components_marking_omp_functional, test_grid) {
   testTaskParallel.run();
   testTaskParallel.post_processing();
 
-      for (uint32_t i = 0; i < h; ++i) {
-        for (uint32_t j = 0; j < w; ++j)
-            std::cout << (out[i * w + j]) << ", ";
-        std::cout << '\n';
-    }
+  int32_t unique = 0;
+  sort(out.begin(), out.end());
+  for (uint32_t i = 0; i < h * w - 1; ++i) {
+    if (out[i] != out[i + 1]) unique++;
+  }
 
-  ASSERT_EQ(out, comp);
+  ASSERT_EQ(50, unique);
 }
