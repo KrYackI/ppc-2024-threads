@@ -86,7 +86,7 @@ void imgMarkingOmp::imgMarking() {
   {
 #pragma omp for
     for (size_t i = 0; i < h; ++i) ptrMap[i].resize(w, nullptr);
-    
+
     std::list<uint32_t> localVec;
 
     int32_t d = h / omp_get_num_threads();
@@ -166,6 +166,7 @@ void imgMarkingOmp::imgMarking() {
     }
 
     omp_destroy_lock(lock);
+    delete lock;
 
 #pragma omp for
     for (size_t i = 0; i < h; ++i)
