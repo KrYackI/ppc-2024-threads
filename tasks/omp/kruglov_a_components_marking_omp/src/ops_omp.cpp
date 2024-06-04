@@ -175,6 +175,6 @@ void imgMarkingOmp::imgMarking() {
 #pragma omp for
   for (size_t i = 0; i < h; ++i)
     for (size_t j = 0; j < w; ++j)
-      if (ptrMap[i][j] != nullptr) delete ptrMap[i][j];
+      delete ptrMap[i][j];
 }
 }  // namespace KruglovOmpTask
