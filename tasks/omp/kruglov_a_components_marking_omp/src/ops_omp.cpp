@@ -173,5 +173,5 @@ void imgMarkingOmp::imgMarking() {
 //   for (size_t i = 0; i < h; ++i)
 //     for (size_t j = 0; j < w; ++j)
 //       delete ptrMap[i][j];
-// }
+}
 }  // namespace KruglovOmpTask
