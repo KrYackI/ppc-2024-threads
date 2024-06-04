@@ -35,7 +35,6 @@ class RecursivePtr {
     return ptr->getValue();
   }
   bool hasVal() { return (getValue() != 0); }
-  void setVal(int _value) { value = _value; }
 };
 
 bool imgMarkingOmp::pre_processing() {
@@ -74,7 +73,7 @@ bool imgMarkingOmp::post_processing() {
 }
 
 void imgMarkingOmp::imgMarking() {
-  std::vector<std::vector<RecursivePtr>> ptrMap;
+  std::vector<std::vector<RecursivePtr *>> ptrMap;
   ptrMap.resize(h);
 
   omp_lock_t *lock = new omp_lock_t;
@@ -86,7 +85,7 @@ void imgMarkingOmp::imgMarking() {
 #pragma omp parallel num_threads(num_threads)
   {
 #pragma omp for
-    for (size_t i = 0; i < h; ++i) ptrMap[i].resize(w);
+    for (size_t i = 0; i < h; ++i) ptrMap[i].resize(w, nullptr);
 
     std::list<uint32_t> localVec;
 
@@ -102,27 +101,30 @@ void imgMarkingOmp::imgMarking() {
     }
     int32_t offset = h0 * w + 1;
     RecursivePtr *localPtr = nullptr;
+    RecursivePtr *ptr;
 
     for (size_t i = 0; i < w; ++i) {
       if (src[h0][i] == 0) {
-        if (i == 0 || ptrMap[h0][i - 1].hasVal()) {
-          ptrMap[h0][i].setVal(offset++);
-          localPtr = &ptrMap[h0][i];
+        if (i == 0 || ptrMap[h0][i - 1] == nullptr) {
+          ptrMap[h0][i] = new RecursivePtr(offset++);
+          localPtr = ptrMap[h0][i];
         } else {
-          ptrMap[h0][i].set(localPtr);
+          ptrMap[h0][i] = new RecursivePtr;
+          ptrMap[h0][i]->set(localPtr);
         }
         if (i == w - 1 || src[h0][i + 1] == 1) localPtr = nullptr;
       }
     }
-    localPtr = &ptrMap[h0][0];
-    RecursivePtr *ptr;
+    localPtr = ptrMap[h0][0];
+
     for (size_t i = 1 + h0; i < h1; ++i) {
       if (src[i][0] == 0) {
-        if (ptrMap[i - 1][0].hasVal()) {
-          ptrMap[i][0].setVal(offset++);
-          localPtr = &ptrMap[i][0];
+        if (ptrMap[i - 1][0] == nullptr) {
+          ptrMap[i][0] = new RecursivePtr(offset++);
+          localPtr = ptrMap[i][0];
         } else {
-          ptrMap[i][0].set(localPtr);
+          ptrMap[i][0] = new RecursivePtr;
+          ptrMap[i][0]->set(localPtr);
         }
         if (i == h1 - 1 || src[i + 1][0] == 1) localPtr = nullptr;
       }
@@ -130,32 +132,31 @@ void imgMarkingOmp::imgMarking() {
       for (size_t j = 1; j < w; ++j) {
         if (src[i][j] == 0) {
           ptr = nullptr;
-          if (ptrMap[i - 1][j].hasVal()) ptr = &ptrMap[i - 1][j];
-          if (ptrMap[i][j - 1].hasVal()) {
-            if (ptr != nullptr && ptrMap[i][j - 1].getValue() != ptr->getValue())
-              ptrMap[i][j - 1].set(&ptrMap[i - 1][j]);
-            ptr = &ptrMap[i][j - 1];
+          if (ptrMap[i - 1][j] != nullptr) ptr = ptrMap[i - 1][j];
+          if (ptrMap[i][j - 1] != nullptr) {
+            if (ptr != nullptr && ptrMap[i][j - 1]->getValue() != ptr->getValue())
+              ptrMap[i][j - 1]->set(ptrMap[i - 1][j]);
+            ptr = ptrMap[i][j - 1];
           }
 
-          if (!ptr->hasVal()) {
-            ptrMap[i][j].setVal(offset++);
+          if (ptr == nullptr) {
+            ptrMap[i][j] = new RecursivePtr(offset++);
           } else {
-            ptrMap[i][j].set(ptr);
+            ptrMap[i][j] = new RecursivePtr;
+            ptrMap[i][j]->set(ptr);
           }
-          
         }
       }
     }
-    delete ptr;
 
 #pragma omp barrier
     if (omp_get_thread_num()) {
       for (size_t j = 0; j < w; ++j) {
         if (src[h1][j] == 0) {
-          if (ptrMap[h1 - 1][j].hasVal() && ptrMap[h1][j].hasVal() &&
-              ptrMap[h1 - 1][j].getValue() != ptrMap[h1][j].getValue()) {
+          if (ptrMap[h1 - 1][j] != nullptr && ptrMap[h1][j] != nullptr &&
+              ptrMap[h1 - 1][j]->getValue() != ptrMap[h1][j]->getValue()) {
             omp_set_lock(lock);
-            ptrMap[h1 - 1][j].set(&ptrMap[h1][j]);
+            ptrMap[h1 - 1][j]->set(ptrMap[h1][j]);
             omp_unset_lock(lock);
           }
         }
@@ -167,11 +168,16 @@ void imgMarkingOmp::imgMarking() {
 #pragma omp for
     for (size_t i = 0; i < h; ++i)
       for (size_t j = 0; j < w; ++j)
-        if (ptrMap[i][j].hasVal()) dst[i][j] = ptrMap[i][j].getValue();
+        if (ptrMap[i][j] != nullptr) dst[i][j] = ptrMap[i][j]->getValue();
+    #pragma omp for
+        for (size_t i = 0; i < h; ++i)
+            for (size_t j = 0; j < w; ++j)
+                if (ptrMap[i][j] != nullptr) delete ptrMap[i][j];
+
+    delete ptr;
+    delete localPtr;
   }
-// #pragma omp for
-//   for (size_t i = 0; i < h; ++i)
-//     for (size_t j = 0; j < w; ++j)
-//       delete ptrMap[i][j];
+
 }
+
 }  // namespace KruglovOmpTask
