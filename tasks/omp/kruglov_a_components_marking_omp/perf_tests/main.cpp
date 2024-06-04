@@ -11,8 +11,8 @@ using namespace KruglovOmpTask;
 TEST(kruglov_a_components_marking_omp_perf_test, test_pipeline_run) {
   // Create data
 
-  uint32_t h = 2000;
-  uint32_t w = 2000;
+  uint32_t h = 500;
+  uint32_t w = 500;
   std::vector<uint32_t> size = {h, w};
   std::vector<uint8_t> in(h * w, 0);
   std::vector<uint32_t> out(h * w, 0);
@@ -53,8 +53,8 @@ TEST(kruglov_a_components_marking_omp_perf_test, test_pipeline_run) {
 TEST(kruglov_a_components_marking_omp_perf_test, test_task_run) {
   // Create data
 
-  uint32_t h = 2000;
-  uint32_t w = 2000;
+  uint32_t h = 500;
+  uint32_t w = 500;
   std::vector<uint32_t> size = {h, w};
   std::vector<uint8_t> in(h * w, 0);
   std::vector<uint32_t> out(h * w, 0);
