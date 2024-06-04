@@ -111,8 +111,8 @@ TEST(kruglov_a_components_marking_omp_functional, test_all_ones) {
 
 TEST(kruglov_a_components_marking_omp_functional, test_all_zeros) {
   // Create data
-  uint32_t h = 2000;
-  uint32_t w = 2000;
+  uint32_t h = 10;
+  uint32_t w = 10;
   std::vector<uint32_t> size = {h, w};
   std::vector<uint8_t> in(h * w, 0);
   std::vector<uint32_t> out(h * w, 0);

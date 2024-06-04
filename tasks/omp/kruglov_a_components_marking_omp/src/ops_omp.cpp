@@ -75,7 +75,7 @@ bool imgMarkingOmp::post_processing() {
 void imgMarkingOmp::imgMarking() {
   std::vector<std::vector<RecursivePtr *>> ptrMap;
   ptrMap.resize(h);
-  
+
   omp_lock_t *lock = new omp_lock_t;
   omp_init_lock(lock);
 
@@ -172,15 +172,14 @@ void imgMarkingOmp::imgMarking() {
     for (size_t i = 0; i < h; ++i)
       for (size_t j = 0; j < w; ++j)
         if (ptrMap[i][j] != nullptr) dst[i][j] = ptrMap[i][j]->getValue();
-    #pragma omp for
-        for (size_t i = 0; i < h; ++i)
-            for (size_t j = 0; j < w; ++j)
-                if (ptrMap[i][j] != nullptr) delete ptrMap[i][j];
+#pragma omp for
+    for (size_t i = 0; i < h; ++i)
+      for (size_t j = 0; j < w; ++j)
+        if (ptrMap[i][j] != nullptr) delete ptrMap[i][j];
 
     // if (ptr != nullptr) delete ptr;
     // if (localPtr != nullptr) delete localPtr;
   }
-
 }
 
 }  // namespace KruglovOmpTask
