@@ -75,18 +75,18 @@ bool imgMarkingOmp::post_processing() {
 void imgMarkingOmp::imgMarking() {
   std::vector<std::vector<RecursivePtr *>> ptrMap;
   ptrMap.resize(h);
-
+  
   omp_lock_t *lock = new omp_lock_t;
   omp_init_lock(lock);
 
   uint32_t num_threads = omp_get_thread_limit();
   if (num_threads > h) num_threads = 1;
 
-#pragma omp parallel num_threads(num_threads)
+#pragma omp parallel num_threads(1)
   {
 #pragma omp for
     for (size_t i = 0; i < h; ++i) ptrMap[i].resize(w, nullptr);
-
+    
     std::list<uint32_t> localVec;
 
     int32_t d = h / omp_get_num_threads();
@@ -101,7 +101,7 @@ void imgMarkingOmp::imgMarking() {
     }
     int32_t offset = h0 * w + 1;
     RecursivePtr *localPtr = nullptr;
-    RecursivePtr *ptr;
+    RecursivePtr *ptr = nullptr;
 
     for (size_t i = 0; i < w; ++i) {
       if (src[h0][i] == 0) {
@@ -149,6 +149,8 @@ void imgMarkingOmp::imgMarking() {
       }
     }
 
+    if (localPtr != nullptr) delete localPtr;
+
 #pragma omp barrier
     if (omp_get_thread_num()) {
       for (size_t j = 0; j < w; ++j) {
@@ -174,8 +176,8 @@ void imgMarkingOmp::imgMarking() {
             for (size_t j = 0; j < w; ++j)
                 if (ptrMap[i][j] != nullptr) delete ptrMap[i][j];
 
-    delete ptr;
-    delete localPtr;
+    // if (ptr != nullptr) delete ptr;
+    // if (localPtr != nullptr) delete localPtr;
   }
 
 }
