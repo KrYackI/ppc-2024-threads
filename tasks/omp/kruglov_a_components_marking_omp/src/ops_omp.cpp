@@ -115,7 +115,7 @@ void imgMarkingOmp::imgMarking() {
       }
     }
     localPtr = &ptrMap[h0][0];
-
+    RecursivePtr *ptr;
     for (size_t i = 1 + h0; i < h1; ++i) {
       if (src[i][0] == 0) {
         if (ptrMap[i - 1][0].hasVal()) {
@@ -129,7 +129,7 @@ void imgMarkingOmp::imgMarking() {
 
       for (size_t j = 1; j < w; ++j) {
         if (src[i][j] == 0) {
-          RecursivePtr *ptr = nullptr;
+          ptr = nullptr;
           if (ptrMap[i - 1][j].hasVal()) ptr = &ptrMap[i - 1][j];
           if (ptrMap[i][j - 1].hasVal()) {
             if (ptr != nullptr && ptrMap[i][j - 1].getValue() != ptr->getValue())
@@ -142,9 +142,11 @@ void imgMarkingOmp::imgMarking() {
           } else {
             ptrMap[i][j].set(ptr);
           }
+          
         }
       }
     }
+    delete ptr;
 
 #pragma omp barrier
     if (omp_get_thread_num()) {
